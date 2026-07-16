@@ -1,0 +1,44 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "tether-foundation-browser-proof",
+  "main": "src/worker.ts",
+  "compatibility_date": "2026-07-13",
+  "compatibility_flags": ["nodejs_compat"],
+  "ai": { "binding": "AI" },
+  "browser": { "binding": "BROWSER" },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "tether-foundation-browser-proof",
+      "migrations_dir": "migrations","database_id": "bd8cba2f-738a-41b1-83e4-969426657c7b"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "FILES",
+      "bucket_name": "tether-foundation-browser-proof-files","preview_bucket_name": "tether-foundation-browser-proof-files"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      { "name": "PROJECT", "class_name": "ProjectState" },
+      { "name": "AGENT_CONTAINER", "class_name": "AgentContainer" }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["ProjectState", "AgentContainer"]
+    }
+  ],
+  "containers": [
+    {
+      "class_name": "AgentContainer",
+      "image": "docker.io/traefik/whoami@sha256:200689790a0a0ea48ca45992e0450bc26ccab5307375b41c84dfc4f2475937ab",
+      "instance_type": "lite",
+      "max_instances": 1,
+      "rollout_step_percentage": 100
+    }
+  ],
+  "observability": { "enabled": true }
+}
