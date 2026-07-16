@@ -30,10 +30,41 @@ Worker** and correctly detected:
 - Browser Rendering as a Workers Paid prerequisite; and
 - R2 subscription as a separate prerequisite.
 
-The browser was authenticated to a different Cloudflare account from the
-intended Feraldo account. No deploy was submitted there. The true browser-only
-run remains pending until the intended account is authenticated and its Workers
-Paid and R2 prerequisites are visible in the same flow.
+An initial attempt exposed an account-mismatch hazard and was stopped before
+submission. The completed run used the intended Feraldo account, where Workers
+Paid, R2, Browser Run, and Containers were already enabled.
+
+## Completed browser-only run
+
+Cloudflare's browser flow successfully:
+
+1. selected the existing `feraldolim` GitHub connection;
+2. cloned the public template into the new public repository
+   `feraldolim/tether-foundation-browser-proof`;
+3. accepted an isolated project name plus new D1 and R2 names;
+4. collected `TETHER_BOOTSTRAP_SECRET` without showing it in build logs;
+5. created D1, R2, the Worker, both Durable Object classes, Workers AI and
+   Browser Run bindings, and the container application from the pinned public
+   image;
+6. ran the custom first deploy, D1 migration, and second deploy through Workers
+   Builds; and
+7. published `tether-foundation-browser-proof.feraldolim.workers.dev`.
+
+The first-run UI then exposed a real JavaScript escaping defect. A one-line fix
+was committed to the browser-created Git repository. The Git push automatically
+triggered Workers Builds and deployed the correction. After recovery:
+
+- `Start or resume` created the versioned Provisioning Record at
+  `doctor_pending`;
+- Deployment Doctor reached `ready` after live D1, R2, Durable Object, Workers
+  AI, Browser Run, container health, and container stop probes;
+- Export returned the complete record and receipts;
+- Cloudflare rolled Worker code back to the broken version while the D1 record
+  remained `ready`;
+- promoting the fixed version restored the UI without altering durable state;
+  and
+- `Prepare uninstall` exported first, stopped the runtime, and transitioned the
+  record to `uninstall_prepared`.
 
 ## Live technical proof on the intended account
 
@@ -61,17 +92,30 @@ Observed sequence:
 8. Cloudflare reported the named `foundation-doctor` instance as `inactive`
    after the stop, proving final scale-to-zero.
 
-Live proof URL: https://tether-foundation-template-prototype.feraldolim.workers.dev
+Both the CLI-only preflight and browser-created deployments were deleted after
+the proof. Their Workers, container applications, D1 databases, and R2 buckets
+are absent; the former Worker URLs return 404. The public Git repositories remain
+as the prototype's primary evidence and do not carry Cloudflare idle cost.
 
 ## Current verdict
 
-The template mechanics and complete capability Doctor are viable. The decision
-gate is **not yet passed** because the browser-side Workers Builds deployment,
-Git clone, secret prompt, update/rollback, export, and uninstall/cleanup must be
-completed in the intended account. The browser observation also makes Workers
-Paid and R2 entitlement preflight part of the product journey rather than an
-implementation detail.
+The decision gate passes: **Deploy to Cloudflare should remain the Foundation
+installation mechanism.** Workers Builds can deploy the pinned external
+container, the secret prompt can establish one-time operator bootstrap, and the
+complete flow is recoverable through Git-triggered updates and Cloudflare
+version promotion/rollback. A Tether-hosted public OAuth installer is not needed
+for the Foundation Release.
 
-The public OAuth fallback is not justified yet: neither Containers nor the
-bootstrap route failed. The remaining blocker is correct-account browser access,
-not missing platform API coverage.
+Production requirements exposed by the proof:
+
+- entitlement preflight must explain Workers Paid and R2 before deployment;
+- deterministic resource names must prevent accidental reuse across installs;
+- the first deployed route must tolerate the short pre-migration window;
+- setup actions and secret-version propagation must be idempotent and retryable;
+- code rollback must explicitly say that D1/R2/Durable Object data is not rolled
+  back;
+- uninstall must export and stop first, then separate compute deletion from the
+  explicit durable-data deletion choice; and
+- Tether cannot self-delete its Cloudflare resources without retained management
+  authority, so Foundation uninstall must hand off to Cloudflare's dashboard or
+  a future narrowly scoped installer grant.
